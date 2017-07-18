@@ -20,9 +20,10 @@ module Main =
         printfn "Working directory is %s" wd
         printfn "Getting puddle list from %s" signpuddleindexurl
         printfn "Base export page is %s" exportpage
-        match (allsigntyppuddles signpuddleindexurl) with
-            | Ok value ->  printfn "%A" value 
+        let puddles = allsigntyppuddles signpuddleindexurl
+        match puddles with
+            | Ok puddleslist ->  printfn "%i puddles founds."  <| List.length puddleslist
             | Error errmsg -> printfn "%s" errmsg
-       
+        
         0 // return an integer exit code
          
