@@ -15,6 +15,9 @@ module Main =
     let main argv =
         let programName  =
            "EntryMerge"
-        printfn "%A" <| allsigntyppuddles  "http://signtyp.uconn.edu/signpuddle/index.php"
+        match (allsigntyppuddles signpuddleindexurl) with
+            | Ok value ->  printfn "%A" value 
+            | Error errmsg -> printfn "%s" errmsg
+       
         0 // return an integer exit code
          
