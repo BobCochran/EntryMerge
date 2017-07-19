@@ -2,11 +2,11 @@
 open System.Net
 open System.IO
 module Download =
-    let getfullurl puddleid  exportpage =
+    let fullurl puddleid  exportpage =
             exportpage + "?ui=1&ex_source=All&action=Download&sgn=" + puddleid
 
-    let getpuddlefilename wd puddleid puddlename =
-          Path.Combine (wd, "sgn" + puddleid + "" + puddlename+ ".spml")
+    let puddlefilename wd puddleid puddlename =
+          Path.Combine (wd, "sgn" + puddleid + "_" + puddlename+ ".spml")
 
     let fetchAsync(filename, url:string) =
         async {
@@ -14,17 +14,19 @@ module Download =
                 let uri = new System.Uri(url)
                 let webClient = new WebClient()
                 let! html = webClient.AsyncDownloadFile(uri, filename)
-                printfn "Downloaded %s " filename
+                printfn "%s " <| "Downloaded " + filename
                 return 1
             with
                 | ex -> printfn "%s" (url + " " + ex.Message); return 0
         }
     
     let filenamesurls wd exportpage puddlelist =
-        let filenames = List.map (fun (puddleid, puddlename ) -> 
-                                    getpuddlefilename wd puddleid puddlename) puddlelist
-        let urls = List.map (fun (puddleid, _ ) -> 
-                                    getfullurl puddleid exportpage) puddlelist
+        let filenames = 
+            List.map (fun (puddleid, puddlename ) -> 
+                 puddlefilename wd puddleid puddlename) puddlelist
+        let urls = 
+            List.map (fun (puddleid, _ ) -> 
+                fullurl puddleid exportpage) puddlelist
         List.zip filenames urls
         
 
