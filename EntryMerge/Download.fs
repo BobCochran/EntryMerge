@@ -1,36 +1,46 @@
 ﻿namespace EntryMerge
-
-
+open System.Net
+open System.IO
 module Download =
     let getfullurl puddleid  exportpage =
             exportpage + "?ui=1&ex_source=All&action=Download&sgn=" + puddleid
 
     let getpuddlefilename wd puddleid puddlename =
-           wd + "\\" +  "sgn" + puddleid + "" + puddlename+ ".spml"
+          Path.Combine (wd, "sgn" + puddleid + "" + puddlename+ ".spml")
 
-    let downloadfile (url:string) filename =
-        use wc = 
-            new System.Net.WebClient()
-        wc.DownloadFile ( url, filename)
-
-    let download wd exportpage puddleid puddlename =
-        let filename =
-            getpuddlefilename wd puddleid puddlename 
-        filename
-            |> printf "%s\r\n"
-        let url = 
-            getfullurl puddleid  exportpage
-        downloadfile url filename
+    let fetchAsync(filename, url:string) =
+        async {
+            try
+                let uri = new System.Uri(url)
+                let webClient = new WebClient()
+                let! html = webClient.AsyncDownloadFile(uri, filename)
+                printfn "Downloaded %s " filename
+                return 1
+            with
+                | ex -> printfn "%s" (url + " " + ex.Message); return 0
+        }
+    
+    let filenamesurls wd exportpage puddlelist =
+        let filenames = List.map (fun (puddleid, puddlename ) -> 
+                                    getpuddlefilename wd puddleid puddlename) puddlelist
+        let urls = List.map (fun (puddleid, _ ) -> 
+                                    getfullurl puddleid exportpage) puddlelist
+        List.zip filenames urls
         
-    let downloadall wd exportpage puddles =
-         printf "%s"  "Downloading puddles\r\n"
+
+    let puddlesasync wd exportpage puddlelist =
+                filenamesurls wd exportpage puddlelist
+                |> Seq.map fetchAsync
+                |> Async.Parallel
+                |> Async.RunSynchronously
+                |> Seq.sum
+
+    let downloadall wd exportpage puddles  = 
          match puddles with
-            | Ok puddleslist -> 
-                puddleslist|> 
-                Seq.map (fun (puddleid, puddlename) ->
-                    download wd exportpage puddleid puddlename
-                    1
-                    )
-                 |> Seq.sum
+            | Ok puddlelist  -> 
+                puddlesasync wd exportpage puddlelist
             | Error _ -> 0
-        
+         
+       
+
+ 
