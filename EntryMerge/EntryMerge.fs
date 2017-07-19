@@ -1,6 +1,6 @@
 namespace EntryMerge
 open EntryMerge.PuddleList
-open FSharp.Data
+open EntryMerge.Download
 open System
 open System.IO
 module Main =
@@ -24,6 +24,7 @@ module Main =
         match puddles with
             | Ok puddleslist ->  printfn "%i puddles founds."  <| List.length puddleslist
             | Error errmsg -> printfn "%s" errmsg
-        
+        let downloaded = downloadall wd exportpage puddles
+        printfn "%i puddles downloaded.\r\n"  downloaded
         0 // return an integer exit code
          

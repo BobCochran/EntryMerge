@@ -1204,6 +1204,7 @@
     </When>
   </Choose>
   <ItemGroup>
+    <Compile Include="Download.fs" />
     <Compile Include="PuddleList.fs" />
     <Compile Include="EntryMerge.fs" />
     <None Include="App.config" />
