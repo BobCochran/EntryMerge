@@ -7,7 +7,7 @@ module Main =
         
     let directoryNameOfMyDocuments = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
     let wd = Path.Combine (directoryNameOfMyDocuments, "Merge") 
-        //"C:\Users\Jonathan\Documents\Merge"
+
     let exportpage = 
         "http://signtyp.uconn.edu/signpuddle/export.php"
     let signpuddleindexurl = 
@@ -21,13 +21,19 @@ module Main =
         printfn "Getting puddle list from %s" signpuddleindexurl
         printfn "Base export page is %s" exportpage
         let puddles = allsigntyppuddles signpuddleindexurl
+                      
         match puddles with
             | Ok puddleslist ->  printfn "%i puddles founds."  <| List.length puddleslist
             | Error errmsg -> printfn "%s" errmsg
+        let filenames = 
+                match puddles with
+                    | Ok puddleslist ->   List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename)) (puddleslist  |> List.take 5  ) //Todo remove take so that all are processed
+                    | Error errmsg -> []
         if  not (Directory.Exists(wd)) then
             Directory.CreateDirectory(wd)|> ignore; () 
             printfn "%s " <| "Creating directory " + wd; 
-        let downloaded = downloadall wd exportpage puddles
+
+        let downloaded = downloadall exportpage filenames
         printfn "%i puddles downloaded.\r\n"  downloaded
         0 // return an integer exit code
          
