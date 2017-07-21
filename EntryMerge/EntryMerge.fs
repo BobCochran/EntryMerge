@@ -24,6 +24,9 @@ module Main =
         match puddles with
             | Ok puddleslist ->  printfn "%i puddles founds."  <| List.length puddleslist
             | Error errmsg -> printfn "%s" errmsg
+        if  not (Directory.Exists(wd)) then
+            Directory.CreateDirectory(wd)|> ignore; () 
+            printfn "%s " <| "Creating directory " + wd; 
         let downloaded = downloadall wd exportpage puddles
         printfn "%i puddles downloaded.\r\n"  downloaded
         0 // return an integer exit code
