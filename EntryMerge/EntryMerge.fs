@@ -24,6 +24,57 @@ module Main =
         printfn "%s" "Press any key to continue"
         System.Console.ReadKey() |> ignore
 
+    let filenamesfromindexpage (logger: Logger) wd signpuddleindexurl = 
+        allsigntyppuddles signpuddleindexurl
+        |> Result.map (fun puddleslist ->
+                let puddlecount = List.length puddleslist
+                printfn "%i puddles found."  puddlecount
+                logger.info (eventX "{puddlecount} puddles found."
+                                >> setField "puddlecount" puddlecount)
+                List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename))
+                    (puddleslist |> List.take 5  ) //Todo remove take so that all are processed
+                )
+
+    let logsettings (logger: Logger) =
+        printfn "Working directory is %s" wd
+        logger.info (eventX "Working directory is {wd}"
+                         >> setField "wd" wd)
+        printfn "Getting puddle list from %s" signpuddleindexurl
+        logger.info (eventX "Getting puddle list from {signpuddleindexurl}"
+                        >> setField "signpuddleindexurl" signpuddleindexurl) 
+        printfn "Base export page is %s" exportpage
+        logger.info (eventX "Base export page is {exportpage}"
+                        >> setField "exportpage" exportpage)
+
+    let createdirectory (logger: Logger) wd =
+        if  not (Directory.Exists(wd)) then
+            Directory.CreateDirectory(wd)|> ignore; () 
+            printfn "%s " <| "Creating directory " + wd; 
+            logger.info (eventX "Creating directory {wd}"
+                            >> setField "wd" wd)
+    let merge (logger: Logger) wd filenames =
+        let merged = 
+            Result.map (mergeallfiles (Path.Combine (wd , "output.spml"))) filenames
+        match merged with
+            | Ok mergecount ->
+                printfn "%i entries merged.\r\n" mergecount  
+                logger.info (eventX "{merged} entries merged."
+                        >> setField "merged" mergecount) 
+            | Result.Error errmsg -> 
+                printfn "%s" errmsg
+                logger.error(eventX "{errmsg}")
+
+    let download (logger: Logger) filenames =
+        printfn "%s " <| "Starting downloads" 
+        logger.info (eventX "Starting downloads")
+        let downloaded = 
+            Result.map (downloadall exportpage) filenames
+
+        Result.map (printfn "%i puddles downloaded.\r\n") downloaded |> ignore
+
+        Result.map (fun d -> logger.info (eventX "{downloaded} puddles downloaded."
+                        >> setField "downloaded" d))downloaded  |> ignore
+
     [<EntryPoint>]
     let main argv =
         let programName  =
@@ -38,50 +89,19 @@ module Main =
         let logger =
             logary.getLogger (PointName [| "EntryMerge"; "EntryMerge"; "main" |])
 
-        printfn "Working directory is %s" wd
-        logger.info (eventX "Working directory is {wd}"
-                         >> setField "wd" wd)
-        printfn "Getting puddle list from %s" signpuddleindexurl
-        logger.info (eventX "Getting puddle list from {signpuddleindexurl}"
-                        >> setField "signpuddleindexurl" signpuddleindexurl) 
-        printfn "Base export page is %s" exportpage
-        logger.info (eventX "Base export page is {exportpage}"
-                        >> setField "exportpage" exportpage)
-        let puddles = allsigntyppuddles signpuddleindexurl
+        logsettings logger
+
+        createdirectory logger wd
+
         let filenames = 
-                match puddles with
-                    | Ok puddleslist ->
-                        let puddlecount = List.length puddleslist
-                        printfn "%i puddles found."  puddlecount
-                        logger.info (eventX "{puddlecount} puddles found."
-                                        >> setField "puddlecount" puddlecount)
-                        List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename))
-                            (puddleslist |> List.take 5  ) //Todo remove take so that all are processed
-                    | Result.Error errmsg -> 
-                       printfn "%s" errmsg
-                       logger.error(eventX "{errmsg}")
-                       []
+            filenamesfromindexpage logger wd signpuddleindexurl
 
+        download logger filenames
 
-        if  not (Directory.Exists(wd)) then
-            Directory.CreateDirectory(wd)|> ignore; () 
-            printfn "%s " <| "Creating directory " + wd; 
-            logger.info (eventX "Creating directory {wd}"
-                            >> setField "wd" wd)
-        printfn "%s " <| "Starting downloads" 
-        logger.info (eventX "Starting downloads")
-        let downloaded = downloadall exportpage filenames
-        printfn "%i puddles downloaded.\r\n"  downloaded
-        logger.info (eventX "{downloaded} puddles downloaded."
-                        >> setField "downloaded" downloaded)
         pressanykey ()
-        let merged = 
-            let outputfilename =  
-                Path.Combine (wd , "output.spml")
-            mergeallfiles outputfilename filenames
-        printfn "%i entries merged.\r\n" merged
-        logger.info (eventX "{merged} entries merged."
-                        >> setField "merged" merged)
+
+        merge logger wd filenames
+                
         pressanykey ()
         0 // return an integer exit code
          
