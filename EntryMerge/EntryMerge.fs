@@ -13,7 +13,9 @@ module Main =
         "http://signtyp.uconn.edu/signpuddle/export.php"
     let signpuddleindexurl = 
         "http://signtyp.uconn.edu/signpuddle/index.php"
-
+    let pressanykey () =
+        printfn "%s" "Press any key to continue"
+        System.Console.ReadKey() |> ignore
     [<EntryPoint>]
     let main argv =
         let programName  =
@@ -41,5 +43,6 @@ module Main =
                 Path.Combine (wd , "output.spml")
             mergeallfiles outputfilename filenames
         printfn "%i entries merged.\r\n" merged
+        pressanykey ()
         0 // return an integer exit code
          
