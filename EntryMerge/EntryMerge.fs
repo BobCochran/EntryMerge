@@ -55,16 +55,7 @@ module Main =
                 printfn "%s" errmsg
                 logger.error(eventX "{errmsg}")
 
-    let download (logger: Logger) filenames =
-        printfn "%s " <| "Starting downloads" 
-        logger.info (eventX "Starting downloads")
-        let downloaded = 
-            Result.map (downloadall exportpage) filenames
 
-        Result.map (printfn "%i puddles downloaded.\r\n") downloaded |> ignore
-
-        Result.map (fun d -> logger.info (eventX "{downloaded} puddles downloaded."
-                        >> setField "downloaded" d))downloaded  |> ignore
 
     [<EntryPoint>]
     let main argv =
@@ -73,7 +64,11 @@ module Main =
 
         use logary =
             withLogaryManager programName (
-                withTargets [ File.create (File.FileConf.create wd (Logary.Targets.File.Naming ("EntryMerge-{datetime}", "log"))) "file" ] >>
+                withTargets 
+                    [ File.create 
+                        (File.FileConf.create wd 
+                            (Logary.Targets.File.Naming 
+                                ("EntryMerge-{datetime}", "log"))) "file" ] >>  
                 withRules [ Rule.createForTarget "file" ])
          |> run  
                 
@@ -89,7 +84,7 @@ module Main =
             |> Result.map (List.take 5)  //Todo remove take so that all are processed
 
 
-        download logger filenames
+        download logger exportpage filenames
 
         pressanykey ()
 

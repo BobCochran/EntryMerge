@@ -1,7 +1,11 @@
 ﻿namespace EntryMerge
+open System
 open System.Net
-
+open Logary
+open Logary.Message 
 module Download =
+    let logger = Logging.getCurrentLogger ()
+
     let fullurl puddleid  exportpage =
             exportpage + "?ui=1&ex_source=All&action=Download&sgn=" + puddleid
 
@@ -14,7 +18,14 @@ module Download =
                 printfn "%s " <| "Downloaded " + filename
                 return 1
             with
-                | ex -> printfn "%s" (url + " " + ex.Message); return 0
+                
+                 | :?Exception as ex ->
+                    Message.eventError  "Could not get download " 
+                        |> Message.setField "filename" filename
+                        |> Message.setField "url" url
+                        |> Message.addExn ex
+                        |> Logger.logSimple logger
+                    printfn "%s" (url + " " + ex.Message); return 0
         }
     
     let filenamesurls exportpage filelist =
@@ -33,6 +44,15 @@ module Download =
                 |> Seq.sum
 
          
-       
+    let download (logger: Logger) exportpage filenames =
+        printfn "%s " <| "Starting downloads" 
+        logger.info (eventX "Starting downloads")
+        let downloaded = 
+            Result.map (downloadall exportpage) filenames
+
+        Result.map (printfn "%i puddles downloaded.\r\n") downloaded |> ignore
+
+        Result.map (fun d -> logger.info (eventX "{downloaded} puddles downloaded."
+                        >> setField "downloaded" d))downloaded  |> ignore
 
  
