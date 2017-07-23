@@ -2,7 +2,10 @@
 open FSharp.Data
 module PuddleList =
     open System
+    open System.IO
     open Logary
+    open Logary.Message 
+ 
 
     let logger = Logging.getCurrentLogger ()
     type SignTypeIndex =   
@@ -38,3 +41,15 @@ module PuddleList =
     let allsigntyppuddles url = 
         document url
         |> Result.bind retrievepuddles  
+
+    let puddlefilename wd puddleid puddlename =
+          Path.Combine (wd, "sgn" + puddleid + "_" + puddlename+ ".spml")
+
+    let filenamesfromindexpage (logger: Logger) wd signpuddleindexurl = 
+        allsigntyppuddles signpuddleindexurl
+        |> Result.map (fun puddleslist ->
+                let puddlecount = List.length puddleslist
+                printfn "%i puddles found."  puddlecount
+                logger.info (eventX "{puddlecount} puddles found."
+                                >> setField "puddlecount" puddlecount)
+                List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename)) puddleslist) 

@@ -1,12 +1,9 @@
 ﻿namespace EntryMerge
 open System.Net
-open System.IO
+
 module Download =
     let fullurl puddleid  exportpage =
             exportpage + "?ui=1&ex_source=All&action=Download&sgn=" + puddleid
-
-    let puddlefilename wd puddleid puddlename =
-          Path.Combine (wd, "sgn" + puddleid + "_" + puddlename+ ".spml")
 
     let fetchAsync(filename, url:string) =
         async {

@@ -18,22 +18,13 @@ module Main =
 
     let exportpage = 
         "http://signtyp.uconn.edu/signpuddle/export.php"
+
     let signpuddleindexurl = 
         "http://signtyp.uconn.edu/signpuddle/index.php"
+
     let pressanykey () =
         printfn "%s" "Press any key to continue"
         System.Console.ReadKey() |> ignore
-
-    let filenamesfromindexpage (logger: Logger) wd signpuddleindexurl = 
-        allsigntyppuddles signpuddleindexurl
-        |> Result.map (fun puddleslist ->
-                let puddlecount = List.length puddleslist
-                printfn "%i puddles found."  puddlecount
-                logger.info (eventX "{puddlecount} puddles found."
-                                >> setField "puddlecount" puddlecount)
-                List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename))
-                    (puddleslist |> List.take 5  ) //Todo remove take so that all are processed
-                )
 
     let logsettings (logger: Logger) =
         printfn "Working directory is %s" wd
@@ -95,6 +86,8 @@ module Main =
 
         let filenames = 
             filenamesfromindexpage logger wd signpuddleindexurl
+            |> Result.map (List.take 5)  //Todo remove take so that all are processed
+
 
         download logger filenames
 
