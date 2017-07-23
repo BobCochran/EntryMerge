@@ -5,12 +5,14 @@ open System.IO
 
 module MergePuddle =
     let readLines (filePath:string) = 
-        seq {
-            use sr = new StreamReader (filePath)
-            while not sr.EndOfStream do
-                yield sr.ReadLine ()
-             }
-
+        if (File.Exists(filePath)) then
+            seq {
+                use sr = new StreamReader (filePath)
+                while not sr.EndOfStream do
+                    yield sr.ReadLine ()
+                 } |> Ok
+        else
+            "File " + filePath + " does not exist. Skipping file." |> Error 
     let saveentries outputfile entries =
         use streamWriter = new StreamWriter(outputfile, true)
         let countsequence = 
@@ -50,12 +52,16 @@ module MergePuddle =
 
     let mergefile outputfile filename puddleid =
         readLines (filename)
-        |> clean puddleid  
-        |> saveentries outputfile 
+        |> Result.map (clean puddleid)
+        |> Result.map (saveentries outputfile)
 
     let mergeallfiles outputfilename filenames =
         File.Delete outputfilename
         filenames 
         |> Seq.map (fun (puddleid, filename) ->
-            mergefile outputfilename filename puddleid)  
-        |> Seq.sum  
+            match mergefile outputfilename filename puddleid with
+                |Ok value -> value
+                |Error err ->
+                    printfn "%s " <| err
+                    0)
+        |> Seq.sum
