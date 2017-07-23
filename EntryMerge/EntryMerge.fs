@@ -1,4 +1,5 @@
 namespace EntryMerge
+open EntryMerge.MergePuddle
 open EntryMerge.PuddleList
 open EntryMerge.Download
 open System
@@ -23,7 +24,7 @@ module Main =
         let puddles = allsigntyppuddles signpuddleindexurl
                       
         match puddles with
-            | Ok puddleslist ->  printfn "%i puddles founds."  <| List.length puddleslist
+            | Ok puddleslist ->  printfn "%i puddles found."  <| List.length puddleslist
             | Error errmsg -> printfn "%s" errmsg
         let filenames = 
                 match puddles with
@@ -32,8 +33,13 @@ module Main =
         if  not (Directory.Exists(wd)) then
             Directory.CreateDirectory(wd)|> ignore; () 
             printfn "%s " <| "Creating directory " + wd; 
-
+        printfn "%s " <| "Starting downloads" 
         let downloaded = downloadall exportpage filenames
         printfn "%i puddles downloaded.\r\n"  downloaded
+        let merged = 
+            let outputfilename =  
+                Path.Combine (wd , "output.spml")
+            mergeallfiles outputfilename filenames
+        printfn "%i entries merged.\r\n" merged
         0 // return an integer exit code
          
