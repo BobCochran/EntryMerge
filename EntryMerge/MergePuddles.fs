@@ -5,14 +5,20 @@ open System.IO
 
 module MergePuddle =
     let readLines (filePath:string) = 
-        if (File.Exists(filePath)) then
-            seq {
-                use sr = new StreamReader (filePath)
-                while not sr.EndOfStream do
-                    yield sr.ReadLine ()
-                 } |> Ok
-        else
-            "File " + filePath + " does not exist. Skipping file." |> Error 
+        try 
+            if (File.Exists(filePath)) then
+                seq {
+                    use sr = new StreamReader (filePath)
+                    while not sr.EndOfStream do
+                        yield sr.ReadLine ()
+                     } |> Ok
+            else
+                "File " + filePath + " does not exist. Skipping file." |> Error 
+        with
+            | :? System.Exception as ex -> 
+                "An error occured when reading file " + filePath + ". Skipping file." 
+                |> Error   
+                 
     let saveentries outputfile entries =
         use streamWriter = new StreamWriter(outputfile, true)
         let countsequence = 
