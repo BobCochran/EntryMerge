@@ -46,35 +46,41 @@ module Main =
 
     [<EntryPoint>]
     let main argv =
-        let programName  =
-           "EntryMerge"
+        try
+            let programName  =
+               "EntryMerge"
 
-        use logary =
-            withLogaryManager programName (
-                withTargets 
-                    [ File.create 
-                        (File.FileConf.create wd 
-                            (Logary.Targets.File.Naming 
-                                ("EntryMerge-{datetime}", "log"))) "file" ] >>  
-                withRules [ Rule.createForTarget "file" ])
-         |> run  
+            use logary =
+                withLogaryManager programName (
+                    withTargets 
+                        [ File.create 
+                            (File.FileConf.create wd 
+                                (Logary.Targets.File.Naming 
+                                    ("EntryMerge-{datetime}", "log"))) "file" ] >>  
+                    withRules [ Rule.createForTarget "file" ])
+             |> run  
                 
-        let logger =
-            logary.getLogger (PointName [| "EntryMerge"; "EntryMerge"; "main" |])
+            let logger =
+                logary.getLogger (PointName [| "EntryMerge"; "EntryMerge"; "main" |])
 
-        logsettings logger
+            logsettings logger
 
-        createdirectory logger wd
+            createdirectory logger wd
 
-        let filenames = 
-            filenamesfromindexpage logger wd signpuddleindexurl
-            |> List.take 5   //Todo remove take so that all are processed
+            let filenames = 
+                filenamesfromindexpage logger wd signpuddleindexurl
+                //|> List.take 5   //Todo remove take so that all are processed
 
-        download logger exportpage filenames
+            download logger exportpage filenames
         
-        merge logger wd filenames
+            merge logger wd filenames
                 
-        pressanykey ()
-        logger.info (eventX "EntryMerge program exiting.")
+            pressanykey ()
+            logger.info (eventX "EntryMerge program exiting.")
+        with
+            | :?Exception as ex ->
+            Message.eventError  "Exception occured" 
+                |> Message.addExn ex
+                |> Logger.logSimple logger
         0 // return an integer exit code
          
