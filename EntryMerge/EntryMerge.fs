@@ -43,19 +43,6 @@ module Main =
             printfn "%s " <| "Creating directory " + wd; 
             logger.info (eventX "Creating directory {wd}"
                             >> setField "wd" wd)
-    let merge (logger: Logger) wd filenames =
-        let merged = 
-            Result.map (mergeallfiles (Path.Combine (wd , "output.spml"))) filenames
-        match merged with
-            | Ok mergecount ->
-                printfn "%i entries merged.\r\n" mergecount  
-                logger.info (eventX "{merged} entries merged."
-                        >> setField "merged" mergecount) 
-            | Result.Error errmsg -> 
-                printfn "%s" errmsg
-                logger.error(eventX "{errmsg}")
-
-
 
     [<EntryPoint>]
     let main argv =
@@ -81,8 +68,7 @@ module Main =
 
         let filenames = 
             filenamesfromindexpage logger wd signpuddleindexurl
-            |> Result.map (List.take 5)  //Todo remove take so that all are processed
-
+            |> List.take 5   //Todo remove take so that all are processed
 
         download logger exportpage filenames
 

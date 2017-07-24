@@ -42,17 +42,16 @@ module Download =
                 |> Async.Parallel
                 |> Async.RunSynchronously
                 |> Seq.sum
-
-         
+          
     let download (logger: Logger) exportpage filenames =
-        printfn "%s " <| "Starting downloads" 
+        printfn "%s " "Starting downloads" 
         logger.info (eventX "Starting downloads")
         let downloaded = 
-            Result.map (downloadall exportpage) filenames
+            downloadall exportpage filenames
 
-        Result.map (printfn "%i puddles downloaded.\r\n") downloaded |> ignore
+        printfn "%i puddles downloaded.\r\n" downloaded |> ignore
 
-        Result.map (fun d -> logger.info (eventX "{downloaded} puddles downloaded."
-                        >> setField "downloaded" d))downloaded  |> ignore
+        logger.info (eventX "{downloaded} puddles downloaded."
+                        >> setField "downloaded" downloaded) |> ignore
 
  

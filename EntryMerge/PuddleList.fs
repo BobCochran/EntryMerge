@@ -46,10 +46,16 @@ module PuddleList =
           Path.Combine (wd, "sgn" + puddleid + "_" + puddlename+ ".spml")
 
     let filenamesfromindexpage (logger: Logger) wd signpuddleindexurl = 
-        allsigntyppuddles signpuddleindexurl
-        |> Result.map (fun puddleslist ->
+        match allsigntyppuddles signpuddleindexurl with
+            | Ok puddleslist ->
                 let puddlecount = List.length puddleslist
                 printfn "%i puddles found."  puddlecount
                 logger.info (eventX "{puddlecount} puddles found."
                                 >> setField "puddlecount" puddlecount)
-                List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename)) puddleslist) 
+                List.map (fun (puddleid, puddlename ) -> (puddleid, puddlefilename wd puddleid puddlename)) puddleslist 
+            | Result.Error errmsg ->
+                printfn "%s" errmsg
+                logger.error (eventX "{errmsg} puddles found."
+                                >> setField "errmsg" errmsg)
+                []         
+        

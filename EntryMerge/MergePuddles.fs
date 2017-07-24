@@ -2,8 +2,10 @@
 open System
 open System.Text.RegularExpressions
 open System.IO
-
+open Logary
+open Logary.Message 
 module MergePuddle =
+    let logger = Logging.getCurrentLogger ()
     let readLines (filePath:string) = 
         try 
             if (File.Exists(filePath)) then
@@ -13,11 +15,18 @@ module MergePuddle =
                         yield sr.ReadLine ()
                      } |> Ok
             else
-                "File " + filePath + " does not exist. Skipping file." |> Error 
+                logger.error(eventX "File {filepath} does not exist. Skipping file."
+                      >> setField "filepath" filePath)    
+                "File " + filePath + " does not exist. Skipping file." |> Result.Error 
+
         with
             | :? System.Exception as ex -> 
-                "An error occured when reading file " + filePath + ". Skipping file." 
-                |> Error   
+                 Message.eventError  "An error occured when reading file {filepath}. Skipping file." 
+                    |> Message.setField "filepath" filePath 
+                    |> Message.addExn ex
+                    |> Logger.logSimple logger
+                 "An error occured when reading file " + filePath + ". Skipping file." 
+                 |> Result.Error   
                  
     let saveentries outputfile entries =
         use streamWriter = new StreamWriter(outputfile, true)
@@ -67,7 +76,15 @@ module MergePuddle =
         |> Seq.map (fun (puddleid, filename) ->
             match mergefile outputfilename filename puddleid with
                 |Ok value -> value
-                |Error err ->
+                |Result.Error err ->
+                    logger.error(eventX err)
                     printfn "%s " <| err
                     0)
         |> Seq.sum
+
+    let merge (logger: Logger) wd filenames =
+        let mergecount = mergeallfiles (Path.Combine (wd , "output.spml")) filenames
+        printfn "%i entries merged.\r\n" mergecount  
+        logger.info (eventX "{merged} entries merged."
+                        >> setField "merged" mergecount)
+ 
