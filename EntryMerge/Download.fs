@@ -16,6 +16,8 @@ module Download =
                 let webClient = new WebClient()
                 let! html = webClient.AsyncDownloadFile(uri, filename)
                 printfn "%s " <| "Downloaded " + filename
+                logger.info (eventX "Downloaded {filename}."
+                    >> setField "filename" filename)
                 return 1
             with
                 
