@@ -28,10 +28,13 @@ module MergePuddle =
                  "An error occured when reading file " + filePath + ". Skipping file." 
                  |> Result.Error   
                  
-    let saveentries outputfile entries =
+    let saveentries filename outputfile  entries =
         use streamWriter = new StreamWriter(outputfile, true)
         let countsequence = 
             Seq.map (fun x -> streamWriter.WriteLine( x:string);1) entries
+        printfn "%s " <| "Merged " + filename
+        logger.info (eventX "Merged {filename}."
+                        >> setField "filename" filename)
         Seq.sum countsequence
 
     let split (separators: string [] ) (x:string) = 
@@ -68,7 +71,7 @@ module MergePuddle =
     let mergefile outputfile filename puddleid =
         readLines (filename)
         |> Result.map (clean puddleid)
-        |> Result.map (saveentries outputfile)
+        |> Result.map (saveentries filename outputfile)
 
     let mergeallfiles outputfilename filenames =
         File.Delete outputfilename
