@@ -77,5 +77,6 @@ module Main =
         merge logger wd filenames
                 
         pressanykey ()
+        logger.info (eventX "EntryMerge program exiting.")
         0 // return an integer exit code
          
