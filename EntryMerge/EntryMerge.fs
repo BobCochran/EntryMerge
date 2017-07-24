@@ -71,9 +71,7 @@ module Main =
             |> List.take 5   //Todo remove take so that all are processed
 
         download logger exportpage filenames
-
-        pressanykey ()
-
+        
         merge logger wd filenames
                 
         pressanykey ()
