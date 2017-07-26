@@ -1217,6 +1217,7 @@
     <None Include="sampleindex.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="EntryMerge.iss" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FParsec">
