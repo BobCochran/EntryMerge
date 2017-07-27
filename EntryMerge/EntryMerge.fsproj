@@ -1211,13 +1211,10 @@
     <Compile Include="EntryMerge.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="sampleentries.spml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="sampleindex.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Include="EntryMerge.iss" />
+    <None Include="DotNetRuntime461-Web.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FParsec">
